@@ -25,12 +25,17 @@ const EMPTY_METRICS: Metrics = {
 };
 
 export default function Dashboard() {
+  const [mounted, setMounted] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const [urls, setUrls] = useState<string[]>([]);
   const [logs, setLogs] = useState<MonitorLog[]>([]);
   const [metrics, setMetrics] = useState<Metrics>(EMPTY_METRICS);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const fetchAll = async () => {
     try {
@@ -79,7 +84,7 @@ export default function Dashboard() {
   }, [logs]);
 
   const statusCodeSeries = useMemo(() => {
-    return Object.entries(metrics.status_code_distribution).map(([code, count]) => ({
+    return Object.entries(metrics.status_code_distribution || {}).map(([code, count]) => ({
       code,
       count,
     }));
@@ -124,30 +129,34 @@ export default function Dashboard() {
         <div className="rounded-xl bg-brand-panel p-4 shadow-sm">
           <h2 className="mb-3 text-lg font-semibold">Latency Trend</h2>
           <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={latencySeries}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="timestamp" minTickGap={30} />
-                <YAxis unit="ms" />
-                <Tooltip />
-                <Line type="monotone" dataKey="latency" stroke="#0f766e" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
+            {mounted ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={latencySeries}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="timestamp" minTickGap={30} />
+                  <YAxis unit="ms" />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="latency" stroke="#0f766e" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : null}
           </div>
         </div>
 
         <div className="rounded-xl bg-brand-panel p-4 shadow-sm">
           <h2 className="mb-3 text-lg font-semibold">Status Code Distribution</h2>
           <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={statusCodeSeries}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="code" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Bar dataKey="count" fill="#0369a1" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {mounted ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={statusCodeSeries}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="code" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#0369a1" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : null}
           </div>
         </div>
       </section>
@@ -168,7 +177,7 @@ export default function Dashboard() {
             <tbody>
               {logs.slice().reverse().slice(0, 100).map((log, idx) => (
                 <tr key={`${log.url}-${log.timestamp}-${idx}`} className="border-b border-slate-100">
-                  <td className="px-3 py-2">{log.url}</td>
+                  <td className="px-3 py-2 break-all">{log.url}</td>
                   <td className="px-3 py-2">{log.status_code ?? "N/A"}</td>
                   <td className="px-3 py-2">{log.response_time_ms} ms</td>
                   <td className="px-3 py-2">{new Date(log.timestamp).toLocaleString()}</td>
