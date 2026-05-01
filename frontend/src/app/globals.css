@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f3f7fb;
+  --panel: #ffffff;
+  --text: #0f172a;
+  --muted: #475569;
+}
+
+body {
+  background: radial-gradient(circle at top left, #dbeafe 0%, #f3f7fb 45%, #ecfeff 100%);
+  color: var(--text);
+}
